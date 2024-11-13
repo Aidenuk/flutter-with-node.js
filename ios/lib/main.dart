@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ios/constants/global_variables.dart';
+import 'package:ios/features/auth/screens/auth_screen.dart';
+import 'package:ios/router.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,15 +16,16 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chang Market',
       theme: ThemeData(
-        primaryColor: Colors.blue,
-      ),
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'Flutter Demo Home Page',
-          ),
-        ),
-      ),
+          scaffoldBackgroundColor: GlobalVariables.backgroundColor,
+          appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              iconTheme: IconThemeData(
+                color: Colors.black,
+              ))),
+      onGenerateRoute: (settings) => generateRoute(settings),
+      home: const AuthScreen(),
     );
   }
 }
