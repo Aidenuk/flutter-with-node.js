@@ -4,7 +4,7 @@ const bcryptjs = require('bcryptjs')
 const jwt = require('jsonwebtoken');
 const authRouter = express.Router();
 const auth = require("../middlewares/auth");
-
+const mongoose = require('mongoose');
 //SIGN UP 
 authRouter.post('/api/signup', async (req,res) =>{
   try{
@@ -47,7 +47,7 @@ authRouter.post('/api/signin', async(req,res) =>{
       return res.status(400).json({msg: "the password is wrong!"})
     }
     //입력한 비밀번호가 맞다면
-    const token = jwt.sign({id: user._id}, "passwordkey");
+    const token = jwt.sign({id: user._id}, "passwordKey");
     res.json({token, ...user._doc});
 
   }catch(e){
@@ -57,24 +57,52 @@ authRouter.post('/api/signin', async(req,res) =>{
 })
 
 authRouter.post("/tokenIsValid", async (req, res) => {
+
   try {
     const token = req.header("x-auth-token");
-    if (!token) return res.json(false);
+    if (!token) {
+      console.error("Token is missing");
+      return res.json(false);
+    }
+    console.log("Token received:", token);
+
     const verified = jwt.verify(token, "passwordKey");
-    if (!verified) return res.json(false);
+    console.log("Verified payload:", verified);
 
     const user = await User.findById(verified.id);
-    if (!user) return res.json(false);
+    console.log("User object:", user);
+    if (!user) {
+      console.error("User not found for ID:", verified.id);
+      return res.json(false);
+    }
     res.json(true);
   } catch (e) {
+    console.error("Error while fetching user:", e.message);
     res.status(500).json({ error: e.message });
   }
 });
-
-// get user data
+//Testing with browser
+// authRouter.get("/", (req, res) => {
+//   res.json({ msg: "Welcome to the API" });
+// });
+// get user data [it won't work for browser as it has no token header]
 authRouter.get("/", auth, async (req, res) => {
-  const user = await User.findById(req.user);
+  try{
+    const user = await User.findById(req.user);
+    console.log("successfully get user info:", user);
+    if(!user){
+      console.log("can not get user info",req.user);
+      return res.json(false);
+    }
+
   res.json({ ...user._doc, token: req.token });
+
+
+  }catch(e){
+    console.error("unable to get User info:", e.message);
+    res.status(500).json({error:e.message});
+  }
+  
 });
 
 module.exports = authRouter;
